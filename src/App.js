@@ -22,6 +22,7 @@ function App() {
   const [labelHeight, setLabelHeight] = useState(0);
   const [labelUnit, setLabelUnit] = useState("");
   const [percentage, setPercentage] = useState(0);
+  const [switchUnits, setSwitchUnits] = useState(null);
 
   const alcLogoMap = {
     "Znak bez hasła": alkNoDesc,
@@ -65,6 +66,63 @@ function App() {
   const unitsList = ["cm", "px", "mm"];
 
   let surfaceArea = labelWidth * labelHeight;
+  let percentageOfSurfaceArea =
+    Math.round((percentage / 100) * surfaceArea * 100) / 100;
+
+  const doTheMath = () => {
+    const proportionsAlk = {
+      "Znak bez hasła": 2.92,
+      "Znak z prawej strony": 5.78,
+      "Znak z hasłem pod spodem": 2.18,
+    };
+    const proportionsNoAlk = {
+      "Znak bez hasła": 1,
+      "Znak z prawej strony": 1,
+      "Znak z hasłem pod spodem": 1,
+    };
+    const selectProportions =
+      beerType === "Piwa alkoholowe" ? proportionsAlk : proportionsNoAlk;
+
+    let perimeter =
+      Math.round((percentage / 100) * labelWidth * 100) / 100 +
+      Math.round((percentage / 100) * labelHeight * 100) / 100;
+
+    let a = 1 * 2;
+    let b = perimeter / a + 2 * selectProportions[logoType];
+
+    let finalA = percentageOfSurfaceArea / b;
+
+    if (
+      beerType === "Piwa bezalkoholowe" &&
+      logoType === "Znak z hasłem pod spodem"
+    ) {
+      return {
+        width: (Math.sqrt(percentageOfSurfaceArea) * 1.36).toFixed(4),
+        height: (Math.sqrt(percentageOfSurfaceArea) * 2.87).toFixed(4),
+      };
+    } else if (
+      beerType === "Piwa bezalkoholowe" &&
+      logoType === "Znak bez hasła"
+    ) {
+      return {
+        width: Math.sqrt(percentageOfSurfaceArea).toFixed(4),
+        height: Math.sqrt(percentageOfSurfaceArea).toFixed(4),
+      };
+    } else if (
+      beerType === "Piwa bezalkoholowe" &&
+      logoType === "Znak z prawej strony"
+    ) {
+      return {
+        width: Math.sqrt(percentageOfSurfaceArea).toFixed(4),
+        height: (Math.sqrt(percentageOfSurfaceArea) * 3.82).toFixed(4),
+      };
+    } else {
+      return {
+        width: b.toFixed(4),
+        height: finalA.toFixed(4),
+      };
+    }
+  };
 
   useEffect(() => {
     switch (logoType) {
@@ -80,13 +138,44 @@ function App() {
       default:
     }
     if (
-      beerType === "Piwa bezalkoholowe" &&
-      bottleType === "Opakowania zbiorcze"
+      (beerType === "Piwa bezalkoholowe" &&
+        bottleType === "Opakowania zbiorcze") ||
+      (beerType === "Piwa bezalkoholowe" && logoType === "Znak bez hasła")
     ) {
       setPercentage(1.71);
     }
     setLabelUnit(unitMap[bottleType]);
-  }, [logoType, beerType, bottleType]);
+    if (labelUnit == "mm") {
+      setSwitchUnits(
+        <span>
+          wynik = {doTheMath().width}
+          {labelUnit} x {doTheMath().height}
+          {labelUnit}
+        </span>
+      );
+    }
+    if (labelUnit == "cm") {
+      setSwitchUnits(
+        <span>
+          wynik = {(doTheMath().width / 10).toFixed(4)}
+          {labelUnit} x {(doTheMath().height / 10).toFixed(4)}
+          {labelUnit}
+        </span>
+      );
+    }
+  }, [logoType, beerType, bottleType, labelUnit]);
+  console.log(labelUnit);
+
+  const parsedLabelWidth =
+    labelUnit === "cm" ? (labelWidth / 10).toFixed(4) : labelWidth;
+  const parsedLabelHeight =
+    labelUnit === "cm" ? (labelHeight / 10).toFixed(4) : labelHeight;
+  const parsedArea =
+    labelUnit === "cm" ? (surfaceArea / 10).toFixed(4) : surfaceArea;
+  const parsedPercentageArea =
+    labelUnit === "cm"
+      ? (percentageOfSurfaceArea / 10).toFixed(4)
+      : percentageOfSurfaceArea;
 
   return (
     <>
@@ -192,9 +281,7 @@ function App() {
                       <Form.Select
                         id="label_unit"
                         onChange={(e) => setLabelUnit(e.target.value)}
-                        defaultValue={labelUnit}
                       >
-                        <option value={labelUnit}>{labelUnit}</option>
                         {unitsList.map((option, index) => (
                           <option key={index} value={option}>
                             {option}
@@ -210,34 +297,28 @@ function App() {
         </Form>
         <Row className="d-flex justify-content-center text-center mt-5">
           <Col xl={2} md={2} sm={5}>
-            <span>Szerokość: {labelWidth}</span>
-          </Col>
-          <Col xl={2} md={2} sm={5}>
-            <span>Wysokość: {labelHeight}</span>
-          </Col>
-          <Col xl={2} md={2} sm={5}>
-            <span>pole {surfaceArea}</span>
-          </Col>
-          <Col xl={2} md={2} sm={5}>
             <span>
-              {percentage}% pola ={" "}
-              {Math.round((percentage / 100) * surfaceArea * 100) / 100}{" "}
-              {labelUnit}
+              Szerokość: {parsedLabelWidth} {labelUnit}
             </span>
           </Col>
           <Col xl={2} md={2} sm={5}>
             <span>
-              {percentage}% szerokości ={" "}
-              {Math.round((percentage / 100) * labelWidth * 100) / 100}{" "}
-              {labelUnit}
+              Wysokość: {parsedLabelHeight} {labelUnit}
             </span>
           </Col>
           <Col xl={2} md={2} sm={5}>
             <span>
-              {percentage}% wysokości ={" "}
-              {Math.round((percentage / 100) * labelHeight * 100) / 100}{" "}
-              {labelUnit}
+              pole {parsedArea} {labelUnit}²
             </span>
+          </Col>
+          <Col xl={2} md={2} sm={5}>
+            <span>
+              {percentage}% pola = {parsedPercentageArea} {labelUnit}²
+            </span>
+          </Col>
+
+          <Col xl={4} md={4} sm={10}>
+            {switchUnits}
           </Col>
         </Row>
       </Container>
