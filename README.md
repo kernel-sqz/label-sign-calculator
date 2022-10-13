@@ -1,5 +1,7 @@
 # Sign label calculator
 
+This app calculates for you dimensions of warning signs that must be on alcoholic drinks.
+
 
 ## Run developer server
 
