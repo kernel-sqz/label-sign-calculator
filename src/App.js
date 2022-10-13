@@ -22,7 +22,6 @@ function App() {
   const [labelHeight, setLabelHeight] = useState(0);
   const [labelUnit, setLabelUnit] = useState("");
   const [percentage, setPercentage] = useState(0);
-  const [switchUnits, setSwitchUnits] = useState(null);
 
   const alcLogoMap = {
     "Znak bez hasła": alkNoDesc,
@@ -63,7 +62,7 @@ function App() {
     "Znak bez hasła",
     "Znak z prawej strony",
   ];
-  const unitsList = ["cm", "px", "mm"];
+  const unitsList = ["px", "mm"];
 
   let surfaceArea = labelWidth * labelHeight;
   let percentageOfSurfaceArea =
@@ -92,7 +91,7 @@ function App() {
 
     let finalA = percentageOfSurfaceArea / b;
 
-    if (
+   if (
       beerType === "Piwa bezalkoholowe" &&
       logoType === "Znak z hasłem pod spodem"
     ) {
@@ -121,7 +120,7 @@ function App() {
         width: b.toFixed(4),
         height: finalA.toFixed(4),
       };
-    }
+    } 
   };
 
   useEffect(() => {
@@ -144,39 +143,34 @@ function App() {
     ) {
       setPercentage(1.71);
     }
-    setLabelUnit(unitMap[bottleType]);
-    if (labelUnit == "mm") {
-      setSwitchUnits(
-        <span>
-          wynik = {doTheMath().width}
-          {labelUnit} x {doTheMath().height}
-          {labelUnit}
-        </span>
-      );
-    }
-    if (labelUnit == "cm") {
-      setSwitchUnits(
-        <span>
-          wynik = {(doTheMath().width / 10).toFixed(4)}
-          {labelUnit} x {(doTheMath().height / 10).toFixed(4)}
-          {labelUnit}
-        </span>
-      );
-    }
+    
+
   }, [logoType, beerType, bottleType, labelUnit]);
-  console.log(labelUnit);
+
+  const switchUnits = labelUnit == "mm" ? (
+    <span>
+            wynik = {doTheMath().width}
+            {labelUnit} x {doTheMath().height}
+            {labelUnit}
+          </span>
+  ) : (
+    <span>
+    wynik = {(doTheMath().width * 3.7795).toFixed(4)}
+    {labelUnit} x {(doTheMath().height * 3.7795).toFixed(4)}
+    {labelUnit}
+  </span>
+  )
 
   const parsedLabelWidth =
-    labelUnit === "cm" ? (labelWidth / 10).toFixed(4) : labelWidth;
+    labelUnit == "px" ? (labelWidth * 3.7795).toFixed(4) : labelWidth;
   const parsedLabelHeight =
-    labelUnit === "cm" ? (labelHeight / 10).toFixed(4) : labelHeight;
+    labelUnit == "px" ? (labelHeight * 3.7795).toFixed(4) : labelHeight;
   const parsedArea =
-    labelUnit === "cm" ? (surfaceArea / 10).toFixed(4) : surfaceArea;
+    labelUnit == "px" ? (surfaceArea * 3.7795).toFixed(4) : surfaceArea;
   const parsedPercentageArea =
-    labelUnit === "cm"
-      ? (percentageOfSurfaceArea / 10).toFixed(4)
+    labelUnit == "px"
+      ? (percentageOfSurfaceArea * 3.7795).toFixed(4)
       : percentageOfSurfaceArea;
-
   return (
     <>
       <Container className="mt-5 pt-5">
@@ -203,7 +197,7 @@ function App() {
               <Form.Group>
                 <Form.Select
                   id="bottle_type"
-                  onChange={(e) => setBottleType(e.target.value)}
+                  onChange={(e) => {setBottleType(e.target.value); setLabelUnit(unitMap[e.target.value])}}
                   defaultValue="0"
                 >
                   <option value="0">---</option>
@@ -278,16 +272,11 @@ function App() {
                 <Col xl={6} md={6} sm={6}>
                   <Form.Group id="height" className="mb-4">
                     <FloatingLabel label="Jednostka">
-                      <Form.Select
-                        id="label_unit"
-                        onChange={(e) => setLabelUnit(e.target.value)}
-                      >
-                        {unitsList.map((option, index) => (
-                          <option key={index} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </Form.Select>
+                    <Form.Control
+                        value={labelUnit}
+                        type="text"
+                        disabled={true}
+                      />
                     </FloatingLabel>
                   </Form.Group>
                 </Col>
